@@ -1,0 +1,78 @@
+### Restaurant Order System - API Tests
+### Verwende die VS Code Extension "REST Client" (humao.rest-client)
+
+@baseUrl = http://localhost:3000/api
+
+### ─── Health Check ───────────────────────────
+GET {{baseUrl}}/health
+
+### ─── Menü ───────────────────────────────────
+
+### Komplette Speisekarte
+GET {{baseUrl}}/menu
+
+### Kategorien
+GET {{baseUrl}}/menu/categories
+
+### Menü durchsuchen
+GET {{baseUrl}}/menu/search?q=Schnitzel
+
+### ─── Tische ─────────────────────────────────
+
+### Alle Tische
+GET {{baseUrl}}/tables
+
+### ─── Bestellungen ───────────────────────────
+
+### Neue Bestellung (Küche)
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{
+  "table_id": 1,
+  "target": "kitchen",
+  "waiter_name": "Max",
+  "notes": "Tisch am Fenster",
+  "items": [
+    { "menu_item_id": 8, "quantity": 2, "unit_price": 22.90, "notes": "medium" },
+    { "menu_item_id": 12, "quantity": 1, "unit_price": 13.90 }
+  ]
+}
+
+### Neue Bestellung (Bar)
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{
+  "table_id": 1,
+  "target": "bar",
+  "waiter_name": "Max",
+  "items": [
+    { "menu_item_id": 36, "quantity": 2, "unit_price": 4.80 },
+    { "menu_item_id": 43, "quantity": 1, "unit_price": 8.50 }
+  ]
+}
+
+### Aktive Bestellungen
+GET {{baseUrl}}/orders
+
+### Küchen-Bestellungen
+GET {{baseUrl}}/orders/kitchen
+
+### Bar-Bestellungen
+GET {{baseUrl}}/orders/bar
+
+### Status ändern (ersetze :id)
+PUT {{baseUrl}}/orders/1/status
+Content-Type: application/json
+
+{ "status": "in_progress" }
+
+### Bestellung fertig
+PUT {{baseUrl}}/orders/1/status
+Content-Type: application/json
+
+{ "status": "ready" }
+
+### Tagesstatistiken
+GET {{baseUrl}}/orders/today/stats
