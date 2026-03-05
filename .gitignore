@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Database
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+backups/
+
+# Build
+client/dist/
+build/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# PM2
+.pm2/
+
+# Coverage
+coverage/
+
+# Temp
+tmp/
+temp/

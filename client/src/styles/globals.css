@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Globale Styles ──────────────────────────── */
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-slate-900 text-slate-100 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Scrollbar für Tablets/Desktop */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-800;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-600 rounded-full;
+  }
+}
+
+@layer components {
+  /* Karten-Style für Bestellungen */
+  .order-card {
+    @apply bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-lg
+           transition-all duration-300 animate-slide-in;
+  }
+
+  .order-card-new {
+    @apply border-l-4 border-l-brand-500;
+  }
+
+  .order-card-in-progress {
+    @apply border-l-4 border-l-yellow-500;
+  }
+
+  .order-card-ready {
+    @apply border-l-4 border-l-green-500 animate-pulse-ring;
+  }
+
+  /* Status-Badges */
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .status-new {
+    @apply bg-brand-500/20 text-brand-400;
+  }
+
+  .status-in-progress {
+    @apply bg-yellow-500/20 text-yellow-400;
+  }
+
+  .status-ready {
+    @apply bg-green-500/20 text-green-400;
+  }
+
+  .status-served {
+    @apply bg-slate-500/20 text-slate-400;
+  }
+
+  .status-cancelled {
+    @apply bg-red-500/20 text-red-400;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+           font-medium transition-all duration-200 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25;
+  }
+
+  .btn-success {
+    @apply btn bg-green-600 text-white hover:bg-green-700;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+
+  .btn-ghost {
+    @apply btn bg-slate-700 text-slate-200 hover:bg-slate-600;
+  }
+}
+
+/* ─── Print-Styles für Küchen-Bon ──────────────── */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

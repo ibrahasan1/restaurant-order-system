@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /c/Users/ibrah/Desktop/restaurant-order-system/restaurant-order-system*)",
+      "Bash(unzip -o /c/Users/ibrah/Desktop/restaurant-order-system.zip)",
+      "Bash(git init)",
+      "Bash(npm install)",
+      "Bash(py --version)",
+      "Bash(winget install Python.Python.3.12 --accept-source-agreements --accept-package-agreements)",
+      "Bash(export PATH=\"/c/Users/ibrah/AppData/Local/Programs/Python/Python312:/c/Users/ibrah/AppData/Local/Programs/Python/Python312/Scripts:$PATH\")",
+      "Bash(nvm --version)",
+      "Bash(npm config set python \"C:\\\\Users\\\\ibrah\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python312\\\\python.exe\")",
+      "Bash(npm config get python)",
+      "Bash(export PYTHON=\"C:\\\\Users\\\\ibrah\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python312\\\\python.exe\")",
+      "Bash(npm run db:init)",
+      "Bash(npm run db:seed)",
+      "Bash(test -f .env)",
+      "Bash(git add .env.example .gitignore .vscode/ LICENSE README.md client/ docs/ ecosystem.config.js package-lock.json package.json scripts/ server/ .claude/)"
+    ]
+  }
+}

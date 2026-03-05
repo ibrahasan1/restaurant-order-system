@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "humao.rest-client",
+    "qwtel.sqlite-viewer",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.npm-intellisense",
+    "ms-vscode.vscode-typescript-next"
+  ]
+}
