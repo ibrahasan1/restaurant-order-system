@@ -33,10 +33,15 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const app = express();
 const server = http.createServer(app);
 
+// ─── Erlaubte Origins ───────────────────────────────────
+const ALLOWED_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : [`http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`, `http://0.0.0.0:${PORT}`];
+
 // ─── Socket.IO ──────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: ALLOWED_ORIGINS,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   },
   pingInterval: parseInt(process.env.SOCKET_PING_INTERVAL) || 10000,
@@ -50,14 +55,30 @@ const io = new Server(server, {
 
 // ─── Middleware ──────────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: false, // Für lokalen Betrieb deaktiviert
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      connectSrc: ["'self'", 'ws:', 'wss:'],
+      fontSrc: ["'self'"],
+      upgradeInsecureRequests: null,
+    },
+  },
+  // Kein HSTS – wir laufen nur über HTTP im lokalen Netzwerk
+  hsts: false,
+  // Kein upgrade-insecure-requests – sonst blockiert der Browser HTTP-Assets
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: { policy: 'same-site' },
 }));
 app.use(compression());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: ALLOWED_ORIGINS,
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Logging
 if (NODE_ENV === 'development') {
@@ -181,6 +202,9 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('uncaughtException', (error) => {
   console.error('❌ Unbehandelte Ausnahme:', error);
   gracefulShutdown('uncaughtException');
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unbehandelte Promise-Rejection:', reason);
 });
 
 // ─── Start ──────────────────────────────────────────────
