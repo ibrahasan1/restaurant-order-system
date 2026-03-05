@@ -34,14 +34,32 @@ const app = express();
 const server = http.createServer(app);
 
 // ─── Erlaubte Origins ───────────────────────────────────
-const ALLOWED_ORIGINS = process.env.CORS_ORIGIN
+// Lokales Netzwerk: Alle privaten IPs akzeptieren (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // Same-origin Requests (kein Origin-Header)
+  try {
+    const { hostname } = new URL(origin);
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+const corsOrigin = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-  : [`http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`, `http://0.0.0.0:${PORT}`];
+  : isAllowedOrigin;
 
 // ─── Socket.IO ──────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: ALLOWED_ORIGINS,
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   },
   pingInterval: parseInt(process.env.SOCKET_PING_INTERVAL) || 10000,
@@ -75,7 +93,7 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(cors({
-  origin: ALLOWED_ORIGINS,
+  origin: corsOrigin,
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
