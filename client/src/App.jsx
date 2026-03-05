@@ -18,7 +18,14 @@ import RoleSelect from './components/RoleSelect';
  */
 export default function App() {
   const [isConnected, setIsConnected] = useState(false);
-  const [role, setRole] = useState(() => localStorage.getItem('ros_role') || null);
+  const [role, setRole] = useState(() => {
+    // Rolle aus localStorage oder aus URL-Pfad ableiten
+    const saved = localStorage.getItem('ros_role');
+    if (saved) return saved;
+    const path = window.location.pathname.split('/')[1];
+    const validRoles = ['waiter', 'kitchen', 'bar', 'admin'];
+    return validRoles.includes(path) ? path : null;
+  });
 
   useEffect(() => {
     // Socket-Events für Verbindungsstatus
@@ -37,6 +44,7 @@ export default function App() {
 
     // Verbindung herstellen wenn Rolle gesetzt
     if (role) {
+      localStorage.setItem('ros_role', role);
       connectSocket(role);
     }
 
