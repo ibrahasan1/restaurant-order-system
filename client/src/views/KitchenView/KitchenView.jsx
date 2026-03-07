@@ -7,7 +7,7 @@ import OrderCard from '../../components/OrderCard';
  * Küchen-Display (Tablet, Querformat)
  * Zeigt nur Speise-Bestellungen in 3 Spalten: Neu | In Arbeit | Fertig
  */
-export default function KitchenView() {
+export default function KitchenView({ device, onLogout }) {
   const { orders, loading } = useOrders('kitchen');
   const { isConnected } = useConnectionStatus();
   useSoundNotifications();
@@ -29,8 +29,8 @@ export default function KitchenView() {
       {/* Header */}
       <header className="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">👨‍🍳</span>
           <h1 className="text-xl font-bold">Küche</h1>
+          <span className="text-xs text-slate-500">{device?.device_name}</span>
         </div>
         <div className="flex items-center gap-4 text-sm">
           <span className="text-slate-400">
@@ -40,6 +40,7 @@ export default function KitchenView() {
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400 animate-pulse'}`} />
             {isConnected ? 'Verbunden' : 'Getrennt'}
           </div>
+          <button onClick={onLogout} className="text-xs text-slate-500 hover:text-slate-300">Abmelden</button>
         </div>
       </header>
 

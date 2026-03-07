@@ -54,12 +54,32 @@ export const api = {
     request(`/orders/${id}/status`, { method: 'PUT', body: { status } }),
   getTodayStats: () => request('/orders/today/stats'),
   getTodayOrders: () => request('/orders/today'),
+  payOrder: (id, data) =>
+    request(`/orders/${id}/pay`, { method: 'POST', body: data }),
 
   // Tables
   getTables: () => request('/tables'),
   getTable: (id) => request(`/tables/${id}`),
   updateTableStatus: (id, status) =>
     request(`/tables/${id}/status`, { method: 'PUT', body: { status } }),
+
+  // Devices
+  loginDevice: (pin) =>
+    request('/devices/login', { method: 'POST', body: { pin } }),
+  getDevices: () => request('/devices'),
+  getDeviceRevenue: (deviceId, date) =>
+    request(`/devices/${deviceId}/revenue?date=${date}`),
+  getDeviceReceipts: (deviceId, date) =>
+    request(`/devices/${deviceId}/receipts?date=${date}`),
+
+  // Admin
+  getAdminRevenue: (date) => request(`/admin/revenue?date=${date}`),
+  resetDeviceRevenue: (deviceId, date) =>
+    request('/admin/revenue/reset', { method: 'POST', body: { deviceId, date } }),
+  resetAllRevenue: (date) =>
+    request('/admin/revenue/reset-all', { method: 'POST', body: { date } }),
+  getAdminDeviceReceipts: (deviceId, date) =>
+    request(`/admin/devices/${deviceId}/receipts?date=${date}`),
 
   // Health
   getHealth: () => request('/health'),

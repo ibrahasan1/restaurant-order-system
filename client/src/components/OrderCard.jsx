@@ -3,7 +3,7 @@ import React from 'react';
 const STATUS_CONFIG = {
   new: { label: 'Neu', class: 'status-new', cardClass: 'order-card-new' },
   in_progress: { label: 'In Arbeit', class: 'status-in-progress', cardClass: 'order-card-in-progress' },
-  ready: { label: 'Fertig!', class: 'status-ready', cardClass: 'order-card-ready' },
+  ready: { label: 'Fertig', class: 'status-ready', cardClass: 'order-card-ready' },
   served: { label: 'Serviert', class: 'status-served', cardClass: '' },
   cancelled: { label: 'Storniert', class: 'status-cancelled', cardClass: '' },
 };
@@ -35,13 +35,13 @@ export default function OrderCard({ order, onStatusChange, showActions = true, c
       <div className="space-y-1.5 mb-3">
         {order.items?.map((item) => (
           <div key={item.id} className="flex items-start gap-2">
-            <span className="text-brand-400 font-bold min-w-[24px]">{item.quantity}×</span>
+            <span className="text-brand-400 font-bold min-w-[24px]">{item.quantity}x</span>
             <div className="flex-1">
               <span className={`text-sm ${compact ? '' : 'text-base'} text-slate-200`}>
                 {item.item_name || item.name}
               </span>
               {item.notes && (
-                <p className="text-xs text-yellow-400 mt-0.5">⚠️ {item.notes}</p>
+                <p className="text-xs text-yellow-400 mt-0.5">{item.notes}</p>
               )}
             </div>
           </div>
@@ -51,13 +51,13 @@ export default function OrderCard({ order, onStatusChange, showActions = true, c
       {/* Notizen */}
       {order.notes && (
         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 mb-3">
-          <p className="text-xs text-yellow-300">📝 {order.notes}</p>
+          <p className="text-xs text-yellow-300">{order.notes}</p>
         </div>
       )}
 
       {/* Kellner-Info */}
       {order.waiter_name && (
-        <p className="text-xs text-slate-500 mb-2">Kellner: {order.waiter_name}</p>
+        <p className="text-xs text-slate-500 mb-2">{order.waiter_name}</p>
       )}
 
       {/* Aktions-Buttons */}
@@ -68,7 +68,7 @@ export default function OrderCard({ order, onStatusChange, showActions = true, c
               onClick={() => onStatusChange(order.id, 'in_progress')}
               className="btn-primary flex-1 text-sm"
             >
-              🔥 Starten
+              Starten
             </button>
           )}
           {order.status === 'in_progress' && (
@@ -76,7 +76,7 @@ export default function OrderCard({ order, onStatusChange, showActions = true, c
               onClick={() => onStatusChange(order.id, 'ready')}
               className="btn-success flex-1 text-sm"
             >
-              ✅ Fertig
+              Fertig
             </button>
           )}
           {order.status === 'ready' && (
@@ -84,7 +84,7 @@ export default function OrderCard({ order, onStatusChange, showActions = true, c
               onClick={() => onStatusChange(order.id, 'served')}
               className="btn-ghost flex-1 text-sm"
             >
-              🍽️ Serviert
+              Serviert
             </button>
           )}
           {['new', 'in_progress'].includes(order.status) && (
@@ -96,7 +96,7 @@ export default function OrderCard({ order, onStatusChange, showActions = true, c
               }}
               className="btn-danger text-sm px-3"
             >
-              ✕
+              &times;
             </button>
           )}
         </div>

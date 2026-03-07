@@ -38,7 +38,7 @@ function setupSocketHandlers(io, db) {
 
     // ─── Gerät registrieren ──────────────────────────
     socket.on('device:register', (data) => {
-      const { role, name, deviceId } = data;
+      const { role, name, deviceId, deviceDbId } = data;
 
       if (!['waiter', 'kitchen', 'bar', 'admin'].includes(role)) {
         socket.emit('error', { message: 'Ungültige Rolle.' });
@@ -50,11 +50,13 @@ function setupSocketHandlers(io, db) {
       socket.role = role;
       socket.deviceName = name || `${role}-${socket.id.slice(0, 6)}`;
       socket.deviceId = deviceId || socket.id;
+      socket.deviceDbId = deviceDbId || null;
 
       // Gerät tracken
       connectedDevices.set(socket.id, {
         id: socket.id,
         deviceId: socket.deviceId,
+        deviceDbId: socket.deviceDbId,
         name: socket.deviceName,
         role,
         connectedAt: new Date().toISOString(),

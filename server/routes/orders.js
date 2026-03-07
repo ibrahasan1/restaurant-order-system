@@ -13,10 +13,12 @@
 const express = require('express');
 const router = express.Router();
 const OrderModel = require('../models/Order');
+const DeviceModel = require('../models/Device');
 
-// Middleware: OrderModel initialisieren
+// Middleware: Models initialisieren
 router.use((req, res, next) => {
   req.orderModel = new OrderModel(req.app.locals.db);
+  req.deviceModel = new DeviceModel(req.app.locals.db);
   next();
 });
 
@@ -170,6 +172,81 @@ router.put('/:id/status', (req, res, next) => {
     }
 
     res.json(order);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/orders/:id/pay - Bestellung bezahlen
+router.post('/:id/pay', (req, res, next) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    const { deviceId, type = 'full', itemIds } = req.body;
+
+    if (!deviceId) {
+      return res.status(400).json({ error: 'deviceId ist erforderlich.' });
+    }
+
+    const order = req.orderModel.getById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Bestellung nicht gefunden.' });
+    }
+
+    // Betrag und Artikel berechnen
+    let paymentItems;
+    let totalAmount;
+
+    if (type === 'partial' && itemIds && itemIds.length > 0) {
+      paymentItems = order.items.filter((item) => itemIds.includes(item.id));
+      totalAmount = paymentItems.reduce(
+        (sum, item) => sum + item.unit_price * item.quantity, 0
+      );
+    } else {
+      paymentItems = order.items;
+      totalAmount = order.total_price;
+    }
+
+    // Bezahlung verarbeiten
+    const result = req.deviceModel.processPayment({
+      deviceId,
+      orderId,
+      tableNumber: order.table_number,
+      items: paymentItems.map((item) => ({
+        name: item.item_name || item.name,
+        quantity: item.quantity,
+        price: item.unit_price,
+      })),
+      totalAmount,
+      paymentType: type,
+    });
+
+    // Aktuellen Tagesumsatz für dieses Gerät holen
+    const today = new Date().toISOString().slice(0, 10);
+    const revenue = req.deviceModel.getDeviceRevenue(deviceId, today);
+
+    // Echtzeit: Revenue-Update an das bezahlende Gerät
+    req.io.emit('revenue:updated', {
+      deviceId,
+      device_name: revenue.device_name,
+      new_total: revenue.total_revenue,
+      order_count: revenue.order_count,
+      last_payment: {
+        table: order.table_number,
+        amount: totalAmount,
+        time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+      },
+    });
+
+    // Echtzeit: Admin Revenue-Update
+    const allRevenue = req.deviceModel.getAllRevenue(today);
+    req.io.to('admin').emit('admin:revenue:updated', allRevenue);
+
+    res.json({
+      success: true,
+      receiptId: result.receiptId,
+      amount: totalAmount,
+      message: `Bezahlung erfolgreich — ${totalAmount.toFixed(2)} €`,
+    });
   } catch (error) {
     next(error);
   }

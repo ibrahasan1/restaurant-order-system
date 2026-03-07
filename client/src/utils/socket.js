@@ -23,27 +23,32 @@ export const socket = io(SOCKET_URL, {
 
 /**
  * Verbindung herstellen und Gerät registrieren
+ * @param {string} role - Rolle (waiter/kitchen/bar/admin)
+ * @param {string} name - Gerätename (z.B. "Gerät 1")
+ * @param {number} deviceDbId - Datenbank-ID des Geräts
  */
-export function connectSocket(role, name) {
+export function connectSocket(role, name, deviceDbId) {
+  // Alten connect-Listener entfernen um Duplikate zu vermeiden
+  socket.off('connect');
+
   if (!socket.connected) {
     socket.connect();
   }
 
+  const registerData = {
+    role,
+    name: name || `${role}-${navigator.userAgent.slice(0, 20)}`,
+    deviceId: getDeviceId(),
+    deviceDbId: deviceDbId || null,
+  };
+
   socket.on('connect', () => {
-    socket.emit('device:register', {
-      role,
-      name: name || `${role}-${navigator.userAgent.slice(0, 20)}`,
-      deviceId: getDeviceId(),
-    });
+    socket.emit('device:register', registerData);
   });
 
   // Sofort registrieren wenn schon verbunden
   if (socket.connected) {
-    socket.emit('device:register', {
-      role,
-      name: name || `${role}-${navigator.userAgent.slice(0, 20)}`,
-      deviceId: getDeviceId(),
-    });
+    socket.emit('device:register', registerData);
   }
 }
 

@@ -29,6 +29,15 @@ function initDatabase() {
   db.pragma('busy_timeout = 5000');        // 5s warten bei gesperrter DB
   db.pragma('cache_size = -20000');        // 20MB Cache
 
+  // ─── Migration: Alte devices-Tabelle entfernen (TEXT PK → INTEGER PK) ──
+  const oldDeviceSchema = db.prepare(
+    "SELECT sql FROM sqlite_master WHERE type='table' AND name='devices'"
+  ).get();
+  if (oldDeviceSchema && oldDeviceSchema.sql && oldDeviceSchema.sql.includes('id TEXT PRIMARY KEY')) {
+    db.exec('DROP TABLE IF EXISTS devices');
+    console.log('🔄 Alte devices-Tabelle migriert');
+  }
+
   // ─── Tabellen erstellen ─────────────────────────────
   db.exec(`
     -- Kategorien für die Speisekarte
@@ -100,26 +109,46 @@ function initDatabase() {
       FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
     );
 
-    -- Verbundene Geräte (für Heartbeat/Monitoring)
+    -- Geräte-Profile (Login per PIN)
     CREATE TABLE IF NOT EXISTS devices (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      role TEXT NOT NULL CHECK(role IN ('waiter', 'kitchen', 'bar', 'admin')),
-      is_online INTEGER DEFAULT 0,
-      last_seen TEXT DEFAULT (datetime('now', 'localtime')),
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_name TEXT NOT NULL UNIQUE,
+      pin TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'waiter' CHECK(role IN ('waiter', 'kitchen', 'bar', 'admin')),
+      is_active INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now', 'localtime'))
     );
 
-    -- Tagesabschluss / Statistiken
-    CREATE TABLE IF NOT EXISTS daily_stats (
+    -- Umsatz-Tracking pro Gerät
+    CREATE TABLE IF NOT EXISTS device_revenue (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT NOT NULL UNIQUE,
-      total_orders INTEGER DEFAULT 0,
-      total_revenue REAL DEFAULT 0,
-      avg_preparation_time REAL DEFAULT 0,
-      peak_hour INTEGER,
-      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+      device_id INTEGER NOT NULL,
+      order_id INTEGER NOT NULL,
+      amount REAL NOT NULL,
+      date TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (device_id) REFERENCES devices(id),
+      FOREIGN KEY (order_id) REFERENCES orders(id)
     );
+
+    -- Belege / Rechnungshistorie pro Gerät
+    CREATE TABLE IF NOT EXISTS receipts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_id INTEGER NOT NULL,
+      order_id INTEGER NOT NULL,
+      table_number INTEGER NOT NULL,
+      items_json TEXT NOT NULL,
+      total_amount REAL NOT NULL,
+      payment_type TEXT DEFAULT 'full',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (device_id) REFERENCES devices(id)
+    );
+
+    -- Indizes für Umsatz-Abfragen
+    CREATE INDEX IF NOT EXISTS idx_device_revenue_device ON device_revenue(device_id);
+    CREATE INDEX IF NOT EXISTS idx_device_revenue_date ON device_revenue(date);
+    CREATE INDEX IF NOT EXISTS idx_receipts_device ON receipts(device_id);
+    CREATE INDEX IF NOT EXISTS idx_receipts_created ON receipts(created_at);
 
     -- ─── Indizes für Performance ──────────────────────
     CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
@@ -131,6 +160,26 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_menu_items_category ON menu_items(category_id);
     CREATE INDEX IF NOT EXISTS idx_menu_items_available ON menu_items(is_available);
   `);
+
+  // ─── Geräte-Seed-Daten (nur wenn leer) ─────────
+  const deviceCount = db.prepare('SELECT COUNT(*) as count FROM devices').get().count;
+  if (deviceCount === 0) {
+    const insertDevice = db.prepare(
+      'INSERT INTO devices (device_name, pin, role) VALUES (?, ?, ?)'
+    );
+    const defaultDevices = [
+      ['Gerät 1', '1111', 'waiter'],
+      ['Gerät 2', '2222', 'waiter'],
+      ['Gerät 3', '3333', 'waiter'],
+      ['Küche',   '4444', 'kitchen'],
+      ['Bar',     '5555', 'bar'],
+      ['Admin',   '0000', 'admin'],
+    ];
+    for (const [name, pin, role] of defaultDevices) {
+      insertDevice.run(name, pin, role);
+    }
+    console.log(`📱 ${defaultDevices.length} Standard-Geräte erstellt`);
+  }
 
   console.log(`📦 Datenbank initialisiert: ${DB_PATH}`);
   return db;

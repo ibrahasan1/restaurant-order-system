@@ -23,6 +23,8 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const menuRoutes = require('./routes/menu');
 const orderRoutes = require('./routes/orders');
 const tableRoutes = require('./routes/tables');
+const deviceRoutes = require('./routes/devices');
+const adminRoutes = require('./routes/admin');
 
 // ─── Konfiguration ──────────────────────────────────────
 const PORT = process.env.PORT || 3000;
@@ -123,6 +125,8 @@ app.use((req, res, next) => {
 app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/tables', tableRoutes);
+app.use('/api/devices', deviceRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ─── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {
